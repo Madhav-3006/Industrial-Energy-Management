@@ -1,8 +1,8 @@
+```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <math.h>
 #include <time.h>
 #include "MQTTClient.h"
 
@@ -16,12 +16,6 @@
 
 #define QOS 1
 #define TIMEOUT 10000L
-
-/* ADC Calibration */
-#define ADC_SCALE       0.000805664
-#define ACS_OFFSET      2.339
-#define ACS_SENSITIVITY 0.100
-#define MAINS_VOLTAGE   230.0
 
 /* Functions from other modules */
 int read_adc();
@@ -39,6 +33,12 @@ int messageArrived(void *context,
                    char *topicName,
                    int topicLen,
                    MQTTClient_message *message);
+
+double calculate_current(int raw);
+double calculate_power(double current);
+double update_energy(double energy,
+                     double power,
+                     double elapsed);
 
 /* Global variables defined elsewhere */
 extern double energy;
@@ -124,18 +124,12 @@ int main()
             continue;
         }
 
-        double voltage =
-            raw * ADC_SCALE;
-
+        /* Calculate electrical parameters */
         double current =
-            fabs((ACS_OFFSET - voltage)
-                 / ACS_SENSITIVITY);
-
-        if (current < 0.02)
-            current = 0.0;
+            calculate_current(raw);
 
         double power =
-            current * MAINS_VOLTAGE;
+            calculate_power(current);
 
         time_t now = time(NULL);
 
@@ -144,9 +138,11 @@ int main()
 
         last_time = now;
 
-        energy +=
-            (power * elapsed)
-            / 3600000.0;
+        energy =
+            update_energy(
+                energy,
+                power,
+                elapsed);
 
         save_energy();
 
@@ -203,3 +199,4 @@ int main()
 
     return 0;
 }
+```
