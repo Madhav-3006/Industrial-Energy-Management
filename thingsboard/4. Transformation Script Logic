@@ -1,0 +1,21 @@
+'''for false'''
+function Transform(msg, metadata, msgType) {
+msg = {
+    relay: false
+};
+
+return {
+    msg: msg,
+    metadata: metadata,
+    msgType: "POST_ATTRIBUTES_REQUEST"
+};
+'''for true'''
+msg = {
+    relay: true
+};
+
+return {
+    msg: msg,
+    metadata: metadata,
+    msgType: "POST_ATTRIBUTES_REQUEST"
+};
